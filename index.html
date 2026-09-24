@@ -51,9 +51,27 @@
       padding: 12px;
       border-radius: 10px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
     }
     .stat-box h4 { margin: 0 0 5px 0; font-size: 0.85rem; opacity: 0.9; }
     .stat-box p { margin: 0; font-size: 1.2rem; font-weight: bold; }
+    .btn-edit-total {
+      background: rgba(255, 255, 255, 0.25);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      margin-top: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-edit-total:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
     
     .actions-bar {
       display: flex;
@@ -158,10 +176,12 @@
       <div class="stat-box">
         <h4>المبلغ الإجمالي المجموع</h4>
         <p id="totalFund">0 ر.ع</p>
+        <button class="btn-edit-total" onclick="editTotalFund()">✏️ تعديل الإجمالي</button>
       </div>
       <div class="stat-box">
         <h4>المتبقي الصافي</h4>
         <p id="remainingFund">0 ر.ع</p>
+        <span style="font-size:0.7rem; opacity:0.8; margin-top:12px;">(الإجمالي - القروض)</span>
       </div>
     </div>
   </div>
@@ -237,12 +257,11 @@
 
     document.getElementById('payDate').valueAsDate = new Date();
 
-    // الاستماع للتغييرات السحابية لحظياً (Real-Time Synchronization)
+    // الاستماع للتغييرات السحابية لحظياً
     db.collection('familyFund').doc('state').onSnapshot((doc) => {
       if (doc.exists) {
         state = doc.data();
       } else {
-        // إنشاء المستند لأول مرة في السحابة
         saveData();
       }
       document.getElementById('cloudStatus').innerText = 'متصل بالسحابة 🟢';
@@ -316,6 +335,16 @@
             <div style="font-size: 0.85rem; color: #666;">${h.date}</div>
           </div>
         `).join('');
+      }
+    }
+
+    // تعديل المبلغ الإجمالي يدوياً
+    function editTotalFund() {
+      const current = state.totalFund || 0;
+      const newTotal = prompt("أدخل المبلغ الإجمالي الجديد للصندوق (ريال عماني):", current);
+      if (newTotal !== null && !isNaN(newTotal) && newTotal.trim() !== "") {
+        state.totalFund = parseFloat(newTotal);
+        saveData();
       }
     }
 
