@@ -5,14 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>صندوق العائلة</title>
 
-  <!-- إعدادات التثبيت وتسمية التطبيق على الهواتف -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="صندوق العائلة">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#2c3e50">
 
-  <!-- أيقونة التطبيق (SVG Data URI) -->
   <link rel="icon" id="favicon" type="image/svg+xml">
   <link rel="apple-touch-icon" id="appleIcon">
   <link rel="manifest" id="manifestPlaceholder">
@@ -82,12 +80,7 @@
       font-size: 0.75rem;
       margin-top: 8px;
       cursor: pointer;
-      transition: background 0.2s;
     }
-    .btn-edit-total:hover {
-      background: rgba(255, 255, 255, 0.4);
-    }
-    
     .actions-bar {
       display: flex;
       gap: 10px;
@@ -108,14 +101,12 @@
     }
     button.btn-danger { background: var(--danger); }
     button.btn-success { background: var(--accent); }
-    
     .section-title {
       font-size: 1.1rem;
       font-weight: bold;
       margin: 20px 0 10px 0;
       color: var(--primary);
     }
-    
     .members-grid {
       display: grid;
       gap: 12px;
@@ -139,7 +130,6 @@
     .balance-negative { background: #fde8e8; color: var(--danger); }
     .balance-positive { background: #e8f8f0; color: var(--accent); }
     .balance-zero { background: #eef2f5; color: #7f8c8d; }
-
     .loans-list, .history-list {
       background: var(--card-bg);
       border-radius: 12px;
@@ -153,8 +143,6 @@
       padding: 10px 0;
       border-bottom: 1px solid #eee;
     }
-    .list-item:last-child { border-bottom: none; }
-
     .modal {
       display: none;
       position: fixed;
@@ -186,7 +174,7 @@
 
   <div class="header-card">
     <span class="cloud-status" id="cloudStatus">جاري الاتصال بالسحابة... 🟡</span>
-    <h2 style="margin: 0;">صندوق العائلة الشهري</h2>
+    <h2 style="margin: 0;">صندوق العائلة</h2>
     <div class="stats-grid">
       <div class="stat-box">
         <h4>المبلغ الإجمالي المجموع</h4>
@@ -247,14 +235,11 @@
   </div>
 
   <script>
-    // إنشاء أيقونة التطبيق برمجياً
     const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2c3e50"/><stop offset="100%" stop-color="#27ae60"/></linearGradient><linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f1c40f"/><stop offset="100%" stop-color="#f39c12"/></linearGradient></defs><rect width="512" height="512" rx="120" fill="url(#bg)"/><path d="M160 200 h192 v160 a32 32 0 0 1 -32 32 h-128 a32 32 0 0 1 -32 -32 z" fill="none" stroke="white" stroke-width="24" stroke-linejoin="round"/><path d="M140 200 h232 a16 16 0 0 0 16 -16 v-20 a40 40 0 0 0 -40 -40 h-184 a40 40 0 0 0 -40 40 v20 a16 16 0 0 0 16 16 z" fill="white"/><circle cx="256" cy="280" r="40" fill="url(#gold)"/><path d="M256 255 v50 M240 280 h32" stroke="white" stroke-width="10" stroke-linecap="round"/></svg>`;
     const iconDataUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgIcon);
-
     document.getElementById('favicon').href = iconDataUrl;
     document.getElementById('appleIcon').href = iconDataUrl;
 
-    // إنشاء ملف Web Manifest ديناميكياً لتثبيت التطبيق بأسماء وأيقونات رسمية
     const manifest = {
       name: "صندوق العائلة",
       short_name: "صندوق العائلة",
@@ -262,17 +247,10 @@
       display: "standalone",
       background_color: "#f8f9fa",
       theme_color: "#2c3e50",
-      icons: [{
-        src: iconDataUrl,
-        sizes: "512x512",
-        type: "image/svg+xml",
-        purpose: "any maskable"
-      }]
+      icons: [{ src: iconDataUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }]
     };
-    const stringManifest = JSON.stringify(manifest);
-    const blob = new Blob([stringManifest], {type: 'application/json'});
-    const manifestURL = URL.createObjectURL(blob);
-    document.getElementById('manifestPlaceholder').setAttribute('href', manifestURL);
+    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+    document.getElementById('manifestPlaceholder').setAttribute('href', URL.createObjectURL(blob));
 
     // تهيئة Firebase
     const firebaseConfig = {
@@ -299,7 +277,10 @@
 
     document.getElementById('payDate').valueAsDate = new Date();
 
-    // الاستماع للتغييرات السحابية لحظياً
+    // عرض الواجهة محلياً فوراً لمنع اختفاء الأسماء أثناء التحميل
+    render();
+
+    // الاتصال بالسحابة وجلب البيانات لحظياً
     db.collection('familyFund').doc('state').onSnapshot((doc) => {
       if (doc.exists) {
         state = doc.data();
@@ -313,18 +294,20 @@
       document.getElementById('cloudStatus').innerText = 'خطأ بالاتصال 🔴';
     });
 
-    // حفظ البيانات في السحابة
     function saveData() {
       db.collection('familyFund').doc('state').set(state)
         .catch(err => console.error("خطأ في الحفظ السحابي:", err));
     }
 
     function render() {
-      // 1. الأعضاء
       const membersContainer = document.getElementById('membersContainer');
       const paySelect = document.getElementById('payMemberSelect');
       membersContainer.innerHTML = '';
       paySelect.innerHTML = '';
+
+      if (!state.members) {
+        state.members = INITIAL_MEMBERS.map(name => ({ name, balance: 0 }));
+      }
 
       state.members.forEach((m, idx) => {
         paySelect.innerHTML += `<option value="${idx}">${m.name}</option>`;
@@ -348,12 +331,10 @@
         `;
       });
 
-      // 2. الإجماليات والقروض
       const totalActiveLoans = (state.loans || []).reduce((sum, l) => sum + l.amount, 0);
       document.getElementById('totalFund').innerText = `${state.totalFund || 0} ر.ع`;
       document.getElementById('remainingFund').innerText = `${(state.totalFund || 0) - totalActiveLoans} ر.ع`;
 
-      // 3. قائمة القروض
       const loansContainer = document.getElementById('loansContainer');
       if (!state.loans || state.loans.length === 0) {
         loansContainer.innerHTML = '<div style="text-align: center; color: #888; padding: 10px;">لا يوجد اقتراض حالي</div>';
@@ -366,7 +347,6 @@
         `).join('');
       }
 
-      // 4. سجل الدفع
       const historyContainer = document.getElementById('historyContainer');
       if (!state.history || state.history.length === 0) {
         historyContainer.innerHTML = '<div style="text-align: center; color: #888; padding: 10px;">لا يوجد سجل دفع بعد</div>';
@@ -380,7 +360,6 @@
       }
     }
 
-    // تعديل المبلغ الإجمالي يدوياً
     function editTotalFund() {
       const current = state.totalFund || 0;
       const newTotal = prompt("أدخل المبلغ الإجمالي الجديد للصندوق (ريال عماني):", current);
@@ -390,7 +369,6 @@
       }
     }
 
-    // الخصم الشهري التلقائي
     function applyMonthlyDeduction() {
       if (confirm("هل تريد بدء شهر جديد وتطبيق خصم 5 ريال عماني على جميع الأعضاء التسعة؟")) {
         state.members.forEach(m => m.balance -= 5);
@@ -398,7 +376,6 @@
       }
     }
 
-    // تسجيل الدفع
     function submitPayment() {
       const idx = document.getElementById('payMemberSelect').value;
       const amount = parseFloat(document.getElementById('payAmount').value);
@@ -415,7 +392,6 @@
       saveData();
     }
 
-    // تسجيل قرض
     function submitLoan() {
       const borrower = document.getElementById('borrowerName').value.trim();
       const amount = parseFloat(document.getElementById('loanAmount').value);
@@ -428,7 +404,6 @@
       saveData();
     }
 
-    // إرجاع القرض
     function repayLoan(index) {
       if (confirm(`هل تم إرجاع مبلغ ${state.loans[index].amount} ر.ع من قبل ${state.loans[index].borrower}؟`)) {
         state.loans.splice(index, 1);
@@ -436,7 +411,6 @@
       }
     }
 
-    // تعديل رصيد عضو يدوياً
     function editBalance(idx) {
       const current = state.members[idx].balance;
       const newBal = prompt(`تعديل الرصيد الحالي لـ ${state.members[idx].name}:`, current);
@@ -451,4 +425,3 @@
   </script>
 </body>
 </html>
-
